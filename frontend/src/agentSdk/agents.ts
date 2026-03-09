@@ -3,6 +3,40 @@ import type { AgentConfig } from './types';
 
 export const AGENT_CONFIGS: AgentConfig[] = [
   {
+    "id": "0a2c9e1d-d8bc-4ef4-a764-037c4baf208f",
+    "name": "B2B Sales Insight Generator",
+    "description": "Assists B2B sales by researching target companies and generating personalized sales insights.",
+    "triggerEvents": [
+      {
+        "type": "sync",
+        "name": "company_research_request",
+        "description": "When a user inputs company details, analyze and produce structured insights.",
+        "outputSchema": z.object({
+          companySummary: z.string(),
+          painPoints: z.array(z.string()),
+          valueProposition: z.string(),
+          coldEmail: z.string(),
+          linkedInMessage: z.string(),
+        })
+      },
+      {
+        "type": "async",
+        "name": "update_company_information",
+        "description": "Prompt user for updated insights on changes like funding, acquisitions."
+      },
+      {
+        "type": "async",
+        "name": "new_product_launch",
+        "description": "Support in creating outreach materials for new product launches with updated insights."
+      }
+    ],
+    "config": {
+      "appId": "ced59212-a27c-435d-9d10-80866d6c5ce1",
+      "accountId": "c8dd74ec-b6f8-4d5e-8339-09620bfe99a7",
+      "widgetKey": "FYSBVjWiqIMzjWTvV6jbcrEudWYWYv7x4rivo0FL"
+    }
+  },
+  {
     "id": "c2fba067-60dd-47d3-93dc-c28becee82cc",
     "name": "B2B Sales Research and Outreach Assistant",
     "description": "Automates prospecting by analyzing company data and industry trends to create personalized outreach copy.",

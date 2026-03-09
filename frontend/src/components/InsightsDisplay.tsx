@@ -4,9 +4,11 @@ import { Copy, Check, Mail, Linkedin, Target, Lightbulb, Building2 } from 'lucid
 
 interface InsightsDisplayProps {
   insights: SalesInsights;
+  onRefineTone?: (tone: string) => void;
+  isLoading?: boolean;
 }
 
-export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights }) => {
+export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights, onRefineTone, isLoading }) => {
   const [copiedField, setCopiedField] = React.useState<string | null>(null);
 
   const copyToClipboard = (text: string, field: string) => {
@@ -15,8 +17,32 @@ export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights }) =>
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const tones = ['Professional', 'Casual', 'Direct', 'Persuasive'];
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Refine Tone Section */}
+      {onRefineTone && (
+        <div className="flex flex-wrap items-center gap-3 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+          <span className="text-sm font-semibold text-indigo-900 flex items-center gap-2">
+            <Check className="w-4 h-4" />
+            Refine Tone:
+          </span>
+          <div className="flex flex-wrap gap-2">
+            {tones.map((tone) => (
+              <button
+                key={tone}
+                disabled={isLoading}
+                onClick={() => onRefineTone(tone)}
+                className="px-3 py-1.5 text-xs font-medium bg-white border border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {tone}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Company Summary */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">

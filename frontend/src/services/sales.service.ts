@@ -10,7 +10,8 @@ const insightsSchema = z.object({
   linkedInMessage: z.string(),
 });
 
-const AGENT_ID = 'c2fba067-60dd-47d3-93dc-c28becee82cc';
+const RESEARCH_AGENT_ID = '0a2c9e1d-d8bc-4ef4-a764-037c4baf208f';
+const OUTREACH_AGENT_ID = 'c2fba067-60dd-47d3-93dc-c28becee82cc';
 
 export const salesService = {
   async generateInsights(input: ResearchInput): Promise<SalesInsights> {
@@ -40,8 +41,8 @@ Best,
 
     try {
       const response = await emitter.emit({
-        agentId: AGENT_ID,
-        event: 'on_research_submission',
+        agentId: RESEARCH_AGENT_ID,
+        event: 'company_research_request',
         payload: input,
       });
 
@@ -55,7 +56,7 @@ Best,
 
   async refineInsights(input: ResearchInput & { focus: string }): Promise<SalesInsights> {
     const response = await emitter.emit({
-      agentId: AGENT_ID,
+      agentId: OUTREACH_AGENT_ID,
       event: 'on_refinement_request',
       payload: input,
     });

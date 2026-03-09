@@ -37,6 +37,35 @@ const App: React.FC = () => {
     }
   };
 
+  const handleRefine = async (newTone: string) => {
+    if (!currentSession) return;
+    setIsLoading(true);
+    try {
+      const updatedInput = { ...currentSession.input, tone: newTone };
+      const refinedInsights = await salesService.refineInsights({ 
+        ...updatedInput, 
+        focus: `Refine outreach with ${newTone} tone` 
+      });
+      
+      const updatedSession: ResearchSession = {
+        ...currentSession,
+        input: updatedInput,
+        insights: refinedInsights,
+      };
+      
+      setCurrentSession(updatedSession);
+      // Update history as well
+      const updatedHistory = history.map(h => h.id === currentSession.id ? updatedSession : h);
+      setHistory(updatedHistory);
+      localStorage.setItem('sales_research_history', JSON.stringify(updatedHistory));
+    } catch (error) {
+      console.error('Failed to refine insights:', error);
+      alert('Failed to refine sales insights. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSelectSession = (session: ResearchSession) => {
     setCurrentSession(session);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -96,11 +125,17 @@ const App: React.FC = () => {
                     <Sparkles className="w-5 h-5 text-indigo-600" />
                     <h3 className="text-lg font-bold">Generated Insights: {currentSession.input.companyName}</h3>
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
-                    {currentSession.input.tone} Tone
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                      {currentSession.input.tone} Tone
+                    </span>
+                  </div>
                 </div>
-                <InsightsDisplay insights={currentSession.insights} />
+                <InsightsDisplay 
+                  insights={currentSession.insights} 
+                  onRefineTone={handleRefine}
+                  isLoading={isLoading}
+                />
               </section>
             )}
           </div>
