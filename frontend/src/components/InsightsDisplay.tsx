@@ -87,9 +87,15 @@ export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights, onRe
           <div className="lg:col-span-2 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Company Summary</h3>
-              <p className="text-slate-700 leading-relaxed text-lg font-medium italic">
+              <p className="text-slate-700 leading-relaxed text-lg font-medium italic mb-4">
                 "{insights.enrichedProfile.summary}"
               </p>
+              {insights.enrichedProfile.recentNews && (
+                <div className="p-3 bg-indigo-50 border-l-4 border-indigo-600 rounded-r-lg">
+                  <div className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Recent News Highlight</div>
+                  <p className="text-sm text-indigo-900 font-medium">{insights.enrichedProfile.recentNews}</p>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">

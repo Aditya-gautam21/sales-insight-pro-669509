@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 const llm = new Llm({ provider: process.env.LLM_PROVIDER || 'google' });
 export const generateResearch = async (input) => {
     const { companyName, industry, targetRole, productService, tone } = input;
+    // If input is broad (no company name), find bulk leads
     if (!companyName || companyName.trim() === '') {
         return findBulkLeads(input);
     }
@@ -34,29 +35,36 @@ const generateSingleCompanyInsights = async (input) => {
     Tone: ${tone}
 
     Tasks:
-    1. Enrich the company with realistic (but simulated) data:
-       - Summary: 2 sentences + 1 recent news highlight.
-       - Key Contacts: 3 varied decision-makers (e.g. CEO, CTO, Sales Head) with realistic emails like [name@company.com].
-       - Extras: Revenue ($10M-$500M), Funding (Series A-F), Tech/Pain Signals (e.g. "Legacy AWS setup, high CAC").
-    2. Identify 4-6 specific pain points for this role in this industry.
-    3. Calculate a Lead Score (0-10) Breakdown (MANDATORY):
+    1. Enrich the company with DEEP realistic (simulated) data:
+       - Summary: 2 concise sentences describing what they do + 1 specific recent news highlight (e.g., funding, product launch, expansion).
+       - Key Contacts: 3 varied decision-makers (e.g. CEO, CTO, VP Sales) with real-ish emails like [first_name@company_domain.com].
+       - Extras: Revenue estimate ($10M-$500M based on company profile), Funding/Size (e.g., Series B, 200-500 employees), Tech/Pain Signals (e.g., "Using legacy CRM, high churn in industry, expanding to India").
+    
+    2. Identify 4-6 Likely Pain Points: Role-specific and industry-specific, tied to the enriched data if possible.
+    
+    3. Calculate Lead Score Breakdown (MANDATORY):
        - Industry Fit (/3): 3=perfect match; 2=strong; 1=mismatch.
-       - Pain Alignment (/3): number of 3-5 pains solved by product (/3).
-       - Growth Potential (/4): From enrichment (4=funded/expanding; 2=stable; 1=declining).
-    4. Generate cold email (Short <100w, CTA) with an A/B Variant (tone tweak).
-    5. Generate LinkedIn message (Warm, personalized).
-    6. Generate a 2-step SDR follow-up sequence (Day 3/7, score-adapted: >8 aggressive, <6 nurture).
+       - Pain Alignment (/3): How many of the 4-6 pains are solved by the product? Score it /3.
+       - Growth Potential (/4): 4=funded/expanding; 2=stable; 1=declining.
+       Return these values in the JSON.
+    
+    4. Outreach Generation:
+       - Value Proposition Angle: One paragraph on how the product solves 1-2 pains with quantifiable benefits.
+       - Cold Email: Short (<100w), clear CTA. Add "variantA" and "variantB" (slight tone/hook tweak).
+       - LinkedIn Message: Warm connection request, personalized with a company fact.
+       - SDR Follow-Up Sequence: 2-step (Day 3 and Day 7). 
+         IMPORTANT: If Lead Score is >8, make it "Aggressive/Value-heavy". If <6, make it "Nurture/Education-heavy".
 
-    Return ONLY a JSON object with this structure:
+    Return ONLY a JSON object with this EXACT structure:
     {
       "enrichedProfile": {
         "summary": "...",
+        "recentNews": "...",
         "keyContacts": [{"role": "...", "name": "...", "emailEst": "..."}],
         "extras": {"revenueEst": "...", "fundingSize": "...", "techPainSignals": "..."}
       },
       "painPoints": ["...", "..."],
       "leadScore": {
-        "score": 0, // Placeholder, will be calculated server-side
         "explanation": "Why this score?",
         "breakdown": {"industryFit": 0, "painAlignment": 0, "growthPotential": 0}
       },
@@ -64,7 +72,7 @@ const generateSingleCompanyInsights = async (input) => {
       "coldEmail": "...",
       "coldEmailVariant": "...",
       "linkedInMessage": "...",
-      "followUpSequence": ["Step 1...", "Step 2..."]
+      "followUpSequence": ["Step 1 (Day 3)", "Step 2 (Day 7)"]
     }
   `;
     const response = await llm.generateText({
@@ -77,8 +85,10 @@ const generateSingleCompanyInsights = async (input) => {
         if (!jsonStr)
             throw new Error('No JSON found in response');
         const insights = JSON.parse(jsonStr);
-        // Apply audited calculation logic for variety
-        insights.leadScore.score = calculateAuditedScore(companyName, industry, insights.leadScore.breakdown);
+        // Apply audited calculation logic with randomness for variety
+        const result = calculateAuditedScore(companyName, industry, insights.leadScore.breakdown);
+        insights.leadScore.score = result.score;
+        insights.leadScore.explanation = `Score ${result.score}/10: ${insights.leadScore.explanation}. Breakdown: Fit:${result.breakdown.industryFit}/3 | Alignment:${result.breakdown.painAlignment}/3 | Growth:${result.breakdown.growthPotential}/4.`;
         return insights;
     }
     catch (error) {
@@ -89,9 +99,11 @@ const generateSingleCompanyInsights = async (input) => {
 const findBulkLeads = async (input) => {
     const { industry, targetRole, productService, tone } = input;
     const prompt = `
-    Find 5-10 realistic B2B companies in the ${industry} industry that would be good leads for ${productService}.
+    You are a B2B Lead Finder.
+    Find 5-10 realistic B2B companies in the ${industry} industry (specifically in major hubs like Delhi/Bangalore/SF if applicable) that would be perfect targets for ${productService}.
+    Focus on diversity: varied sizes and sub-sectors.
     Return ONLY a JSON array of strings representing the company names.
-    Example: ["Company A", "Company B", "Company C"]
+    Example: ["Razorpay", "Zomato", "Shiprocket", "Lenskart", "Delhivery"]
   `;
     const response = await llm.generateText({
         messages: [{ role: 'user', content: prompt }],
@@ -105,53 +117,67 @@ const findBulkLeads = async (input) => {
         const companyNames = JSON.parse(jsonStr);
         const insightsList = [];
         for (const companyName of companyNames) {
-            const insights = await generateSingleCompanyInsights({ ...input, companyName });
-            insightsList.push({ ...insights, companyName });
-            // Save to history
-            await prisma.researchHistory.create({
-                data: {
-                    companyName,
-                    industry,
-                    targetRole,
-                    product: productService,
-                    tone,
-                    leadScore: insights.leadScore.score,
-                    insights: insights,
-                    input: { ...input, companyName }
-                }
-            });
+            try {
+                const insights = await generateSingleCompanyInsights({ ...input, companyName });
+                insightsList.push({ ...insights, companyName });
+                // Save to history
+                await prisma.researchHistory.create({
+                    data: {
+                        companyName,
+                        industry,
+                        targetRole,
+                        product: productService,
+                        tone,
+                        leadScore: insights.leadScore.score,
+                        insights: insights,
+                        input: { ...input, companyName }
+                    }
+                });
+            }
+            catch (e) {
+                console.error(`Failed to generate insights for ${companyName}:`, e);
+            }
+        }
+        if (insightsList.length === 0) {
+            throw new ApiError(400, "Low data? Try a broader industry or product description.");
         }
         return { insights: insightsList };
     }
     catch (error) {
         console.error('Error finding bulk leads:', error);
-        throw new ApiError(500, 'Failed to find bulk leads');
+        throw new ApiError(error.statusCode || 500, error.message || 'Failed to find bulk leads');
     }
 };
 const calculateAuditedScore = (companyName, industry, breakdown) => {
-    const industryFit = Math.min(3, breakdown.industryFit || 0);
-    const painAlignment = Math.min(3, breakdown.painAlignment || 0);
-    const growthPotential = Math.min(4, breakdown.growthPotential || 0);
+    // Ensure values are within range
+    const industryFit = Math.min(3, Math.max(0, breakdown.industryFit || 0));
+    const painAlignment = Math.min(3, Math.max(0, breakdown.painAlignment || 0));
+    const growthPotential = Math.min(4, Math.max(0, breakdown.growthPotential || 0));
     const baseScore = industryFit + painAlignment + growthPotential;
-    // Simple hash for variety (±0.1 to ±0.9)
+    // Simple hash for variety (±0.1 to ±0.9) based on company name and industry
     const hashStr = companyName.toLowerCase() + industry.toLowerCase();
     let hash = 0;
     for (let i = 0; i < hashStr.length; i++) {
         hash = ((hash << 5) - hash) + hashStr.charCodeAt(i);
         hash |= 0;
     }
-    // Map hash to range [1, 9] (omitting 0 to avoid no adjustment)
+    // Map hash to range [1, 9] to ensure we always have an adjustment
     let adjustmentVal = (Math.abs(hash) % 9) + 1; // 1 to 9
     let sign = hash % 2 === 0 ? 1 : -1;
     let adjustment = (adjustmentVal / 10) * sign;
     let finalScore = baseScore + adjustment;
     // Round to 1 decimal
     let roundedScore = parseFloat(finalScore.toFixed(1));
-    // Audit: If score=8.5, slightly adjust it to avoid defaults
+    // Final sanity check
+    roundedScore = Math.min(10, Math.max(0, roundedScore));
+    // Audit: ensure no repeat defaults if user asked
     if (roundedScore === 8.5) {
-        roundedScore = 8.6;
+        roundedScore = 8.4; // Slightly offset from common defaults
     }
-    return Math.min(10, Math.max(0, roundedScore));
+    return {
+        score: roundedScore,
+        breakdown: { industryFit, painAlignment, growthPotential }
+    };
 };
 export const getHistory = async () => {
     return prisma.researchHistory.findMany({

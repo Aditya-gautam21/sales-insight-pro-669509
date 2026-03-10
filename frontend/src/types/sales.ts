@@ -1,5 +1,6 @@
 export interface EnrichedProfile {
   summary: string;
+  recentNews?: string;
   keyContacts: {
     role: string;
     name: string;
@@ -39,8 +40,8 @@ export interface SalesInsights {
   coldEmail: string;
   coldEmailVariant?: string;
   linkedInMessage: string;
-  followUpEmail?: string;
   followUpSequence?: string[];
+  followUpEmail?: string; // Fallback
 }
 
 export interface ResearchSession {
