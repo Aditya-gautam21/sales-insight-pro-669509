@@ -1,54 +1,93 @@
-# API Specification
+# Sales Outreach Assistant API Specification
 
-## Sales Research
+## Base URL
+`/api/sales`
 
-### POST /api/sales/research
-Generates sales insights for a single company or finds bulk leads if company name is missing.
+## Endpoints
 
-**Request Body:**
-- `companyName`: string (optional, if empty triggers bulk lead finding)
-- `industry`: string (required)
-- `targetRole`: string (required)
-- `productService`: string (required)
-- `tone`: string (required)
+### 1. Research & Insights
+- **POST `/research`**
+  - **Description**: Generate sales research and insights for a single company or bulk leads if company name is missing.
+  - **Request Body**:
+    ```json
+    {
+      "companyName": "string (optional)",
+      "industry": "string",
+      "targetRole": "string",
+      "productService": "string",
+      "tone": "string"
+    }
+    ```
+  - **Response**:
+    ```json
+    {
+      "insights": {
+        "enrichedProfile": {
+          "summary": "string",
+          "keyContacts": [{"role": "string", "name": "string", "emailEst": "string"}],
+          "extras": {"revenueEst": "string", "fundingSize": "string", "techPainSignals": "string"}
+        },
+        "painPoints": ["string"],
+        "leadScore": {
+          "score": 8.5,
+          "explanation": "string",
+          "breakdown": {"industryFit": 2.5, "painAlignment": 2.5, "growthPotential": 3.5}
+        },
+        "valuePropositionAngle": "string",
+        "coldEmail": "string",
+        "coldEmailVariant": "string",
+        "linkedInMessage": "string",
+        "followUpSequence": ["string"]
+      }
+    }
+    ```
+    *OR (if bulk leads)*
+    ```json
+    {
+      "insights": [
+        {
+          "companyName": "string",
+          "enrichedProfile": { ... },
+          "painPoints": [...],
+          "leadScore": { ... },
+          "valuePropositionAngle": "...",
+          "coldEmail": "...",
+          "coldEmailVariant": "...",
+          "linkedInMessage": "...",
+          "followUpSequence": ["..."]
+        }
+      ]
+    }
+    ```
 
-**Response:**
-- `insights`: `SalesInsights` | `SalesInsights[]`
+### 2. History Management
+- **GET `/history`**
+  - **Description**: Fetch the last 20 research sessions.
+- **DELETE `/history/:id`**
+  - **Description**: Soft delete a specific history entry.
+- **DELETE `/history`**
+  - **Description**: Soft delete all history entries.
 
-## History
-
-### GET /api/sales/history
-Retrieves all research history entries.
-
-**Response:**
-- `history`: `ResearchSession[]`
-
-### DELETE /api/sales/history/:id
-Deletes a research history entry.
-
-### DELETE /api/sales/history
-Clears all research history.
-
-## Templates
-
-### GET /api/sales/templates
-Retrieves all sales templates.
-
-**Response:**
-- `templates`: `Template[]`
-
-### POST /api/sales/templates
-Creates a new sales template.
-
-**Request Body:**
-- `name`: string
-- `input`: `ResearchInput`
-
-### DELETE /api/sales/templates/:id
-Deletes a sales template.
-
-### GET /api/sales/templates/suggest
-Suggests a template based on recent research history.
-
-**Response:**
-- `template`: `Template`
+### 3. Template Management
+- **GET `/templates`**
+  - **Description**: Fetch all sales outreach templates.
+- **POST `/templates`**
+  - **Description**: Create a new outreach template.
+  - **Request Body**:
+    ```json
+    {
+      "name": "string",
+      "input": {
+        "industry": "string",
+        "targetRole": "string",
+        "productService": "string",
+        "tone": "string"
+      }
+    }
+    ```
+- **PATCH `/templates/:id`**
+  - **Description**: Update an existing template.
+- **DELETE `/templates/:id`**
+  - **Description**: Soft delete a template.
+- **GET `/templates/suggest`**
+  - **Description**: Generate an AI-suggested template based on research history.

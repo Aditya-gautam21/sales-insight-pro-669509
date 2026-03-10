@@ -17,7 +17,7 @@ model User {
   name       String?
   createdAt  DateTime       @default(now())
   identities UserIdentity[]
-  isDeleted  Boolean?
+  isDeleted  Boolean?       @default(false)
 
   @@index([email])
 }
@@ -31,7 +31,7 @@ model UserIdentity {
   metadata   Json? // Provider-specific data (passwordHash, tokens, profile data, etc.)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  isDeleted  Boolean?
+  isDeleted  Boolean? @default(false)
 
   @@unique([provider, providerId])
   @@index([userId])
@@ -71,7 +71,7 @@ model Otp {
   updatedAt  DateTime @updatedAt
 
 
-  isDeleted  Boolean?
+  isDeleted  Boolean? @default(false)
 
 
 

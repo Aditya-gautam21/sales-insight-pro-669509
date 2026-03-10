@@ -267,6 +267,7 @@ const App: React.FC = () => {
                 <section className="pt-8 border-t border-slate-200">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-600" /><h3 className="text-lg font-bold">Bulk Leads Found ({bulkInsights.length})</h3></div>
+                    <button onClick={() => setBulkInsights([])} className="text-xs font-bold text-slate-400 hover:text-indigo-600">Clear Leads</button>
                   </div>
                   <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-200">
                     <table className="w-full text-left">
@@ -285,7 +286,21 @@ const App: React.FC = () => {
                             <td className="px-6 py-4"><span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded-lg font-bold text-xs">{insight.leadScore.score}</span></td>
                             <td className="px-6 py-4 text-sm text-slate-600 truncate max-w-[200px]">{insight.painPoints[0]}</td>
                             <td className="px-6 py-4 text-right">
-                              <button onClick={() => { setCurrentSession({ id: `bulk-${idx}`, input: { ...currentFormData, companyName: insight.companyName || '' }, insights: insight, timestamp: Date.now() }); setBulkInsights([]); }} className="text-xs font-bold text-indigo-600 hover:text-indigo-800">View Details</button>
+                              <button 
+                                onClick={() => { 
+                                  const sess: ResearchSession = { 
+                                    id: `bulk-${idx}-${Date.now()}`, 
+                                    input: { ...currentFormData, companyName: insight.companyName || '' }, 
+                                    insights: insight, 
+                                    timestamp: Date.now() 
+                                  };
+                                  setCurrentSession(sess);
+                                  window.scrollTo({ top: document.getElementById('insights-section')?.offsetTop || 500, behavior: 'smooth' });
+                                }} 
+                                className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all"
+                              >
+                                View Details
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -296,7 +311,7 @@ const App: React.FC = () => {
               )}
 
               {currentSession && (
-                <section className="pt-8 border-t border-slate-200">
+                <section id="insights-section" className="pt-8 border-t border-slate-200">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2"><Sparkles className="w-5 h-5 text-indigo-600" /><h3 className="text-lg font-bold">Generated Insights: {currentSession.input.companyName}</h3></div>
                     <div className="flex items-center gap-2">
@@ -315,7 +330,15 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-2"><History className="w-5 h-5 text-indigo-600" /><h3 className="text-lg font-bold">Recent Activity</h3></div>
                   <button onClick={() => setActiveTab('history')} className="text-xs font-bold text-slate-400 hover:text-indigo-600 transition-colors">View All</button>
                 </div>
-                <HistoryLog sessions={history.slice(0, 5)} onSelect={handleSelectSession} onDelete={handleDeleteSession} onClearAll={handleClearHistory} currentSessionId={currentSession?.id} isSidebar={true} />
+                <HistoryLog 
+                  sessions={history.slice(0, 5)} 
+                  onSelect={handleSelectSession} 
+                  onDelete={handleDeleteSession} 
+                  onClearAll={handleClearHistory} 
+                  onExport={(s) => handleExportCSV([s.insights], `${s.input.companyName}_insights.csv`)}
+                  currentSessionId={currentSession?.id} 
+                  isSidebar={true} 
+                />
               </section>
             </aside>
           </div>
@@ -330,7 +353,14 @@ const App: React.FC = () => {
               </div>
               <button onClick={handleExportAllHistory} className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200"><Download className="w-5 h-5" /> Export All</button>
             </div>
-            <HistoryLog sessions={filteredHistory} onSelect={handleSelectSession} onDelete={handleDeleteSession} onClearAll={handleClearHistory} isSidebar={false} />
+            <HistoryLog 
+              sessions={filteredHistory} 
+              onSelect={handleSelectSession} 
+              onDelete={handleDeleteSession} 
+              onClearAll={handleClearHistory} 
+              onExport={(s) => handleExportCSV([s.insights], `${s.input.companyName}_insights.csv`)}
+              isSidebar={false} 
+            />
           </div>
         )}
 

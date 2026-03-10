@@ -1,12 +1,13 @@
 import React from 'react';
 import { ResearchSession } from '@/types/sales';
-import { Clock, ChevronRight, Trash2, Calendar, LayoutGrid, FileText, Info } from 'lucide-react';
+import { Clock, ChevronRight, Trash2, Calendar, LayoutGrid, FileText, Download, RotateCcw, Search } from 'lucide-react';
 
 interface HistoryLogProps {
   sessions: ResearchSession[];
   onSelect: (session: ResearchSession) => void;
   onDelete: (id: string) => void;
   onClearAll: () => void;
+  onExport?: (session: ResearchSession) => void;
   currentSessionId?: string;
   isSidebar?: boolean;
 }
@@ -16,6 +17,7 @@ export const HistoryLog: React.FC<HistoryLogProps> = ({
   onSelect, 
   onDelete, 
   onClearAll,
+  onExport,
   currentSessionId,
   isSidebar = false 
 }) => {
@@ -23,10 +25,16 @@ export const HistoryLog: React.FC<HistoryLogProps> = ({
     return (
       <div className="bg-white p-12 rounded-2xl border-2 border-dashed border-slate-200 text-center">
         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <History className="w-8 h-8 text-slate-300" />
+          <Clock className="w-8 h-8 text-slate-300" />
         </div>
-        <p className="text-slate-500 font-medium text-lg mb-1">No researches yet—start generating!</p>
-        <p className="text-slate-400 text-sm italic">Your research history will be saved automatically.</p>
+        <p className="text-slate-500 font-medium text-lg mb-4">Start finding leads!</p>
+        <button 
+          onClick={() => (document.querySelector('input[type="text"]') as HTMLInputElement)?.focus()}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+        >
+          <Search className="w-4 h-4" />
+          Quick-search now
+        </button>
       </div>
     );
   }
@@ -78,16 +86,14 @@ export const HistoryLog: React.FC<HistoryLogProps> = ({
             </div>
           ))}
         </div>
-        {sessions.length > 0 && (
-          <div className="p-3 border-t border-slate-100 bg-slate-50/50">
-            <button
-              onClick={onClearAll}
-              className="w-full py-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors"
-            >
-              Clear All History
-            </button>
-          </div>
-        )}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+          <button
+            onClick={onClearAll}
+            className="w-full py-2 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors"
+          >
+            Clear All History
+          </button>
+        </div>
       </div>
     );
   }
@@ -118,7 +124,7 @@ export const HistoryLog: React.FC<HistoryLogProps> = ({
                 </div>
                 <div className="flex gap-2">
                    <div className="flex flex-col items-end">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Lead Score</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 text-right">Lead Score</span>
                     <span className="w-10 h-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl font-bold text-lg shadow-sm shadow-indigo-200">
                       {session.insights.leadScore.score}
                     </span>
@@ -135,28 +141,40 @@ export const HistoryLog: React.FC<HistoryLogProps> = ({
               <div className="space-y-3 mb-6">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Target Persona</div>
-                  <div className="text-sm font-semibold text-slate-700">{session.input.targetRole} in {session.input.industry}</div>
-                </div>
-                <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                  <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1">Product/Service</div>
-                  <div className="text-sm font-semibold text-indigo-900 line-clamp-1 italic">"{session.input.productService}"</div>
+                  <div className="text-sm font-semibold text-slate-700 truncate">{session.input.targetRole} in {session.input.industry}</div>
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => onSelect(session)}
-                  className="flex-grow flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm transition-all shadow-sm shadow-indigo-100"
+                  className="flex-grow flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs transition-all shadow-sm shadow-indigo-100"
                 >
                   <FileText className="w-4 h-4" />
-                  View Details
+                  Expand
                 </button>
                 <button
+                  onClick={() => onSelect(session)}
+                  className="p-2.5 bg-slate-50 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-xl transition-all shadow-sm"
+                  title="Regen / Load"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+                {onExport && (
+                  <button
+                    onClick={() => onExport(session)}
+                    className="p-2.5 bg-slate-50 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 border border-slate-200 rounded-xl transition-all shadow-sm"
+                    title="Export CSV"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                )}
+                <button
                   onClick={() => onDelete(session.id)}
-                  className="p-3 bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-200 rounded-xl transition-all shadow-sm"
+                  className="p-2.5 bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 border border-slate-200 hover:border-red-200 rounded-xl transition-all shadow-sm"
                   title="Delete Research"
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -166,7 +184,3 @@ export const HistoryLog: React.FC<HistoryLogProps> = ({
     </div>
   );
 };
-
-// Re-importing History from lucide-react since it was missing in the new code but needed for the empty state
-import { History } from 'lucide-react';
-
