@@ -1,3 +1,22 @@
+export interface EnrichedProfile {
+  summary: string;
+  keyContacts: {
+    role: string;
+    name: string;
+    emailEst: string;
+  }[];
+  extras: {
+    revenueEst: string;
+    fundingSize: string;
+    techPainSignals: string;
+  };
+}
+
+export interface LeadScore {
+  score: number;
+  explanation: string;
+}
+
 export interface ResearchInput {
   companyName: string;
   industry: string;
@@ -7,11 +26,13 @@ export interface ResearchInput {
 }
 
 export interface SalesInsights {
-  companySummary: string;
+  enrichedProfile: EnrichedProfile;
   painPoints: string[];
-  valueProposition: string;
+  leadScore: LeadScore;
+  valuePropositionAngle: string;
   coldEmail: string;
   linkedInMessage: string;
+  followUpEmail: string;
 }
 
 export interface ResearchSession {

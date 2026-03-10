@@ -1,7 +1,62 @@
 import { z } from 'zod';
 import type { AgentConfig } from './types';
 
+const salesInsightsSchema = z.object({
+  enrichedProfile: z.object({
+    summary: z.string(),
+    keyContacts: z.array(z.object({
+      role: z.string(),
+      name: z.string(),
+      emailEst: z.string()
+    })),
+    extras: z.object({
+      revenueEst: z.string(),
+      fundingSize: z.string(),
+      techPainSignals: z.string()
+    })
+  }),
+  painPoints: z.array(z.string()),
+  leadScore: z.object({
+    score: z.number(),
+    explanation: z.string()
+  }),
+  valuePropositionAngle: z.string(),
+  coldEmail: z.string(),
+  linkedInMessage: z.string(),
+  followUpEmail: z.string()
+});
+
 export const AGENT_CONFIGS: AgentConfig[] = [
+  {
+    "id": "96cf504d-f62c-4c21-b86d-5e5c92121e7a",
+    "name": "B2B Sales Research Assistant",
+    "description": "Enriches target companies with key data, analyzes sales insights, and enhances SDR outreach.",
+    "triggerEvents": [
+      {
+        "type": "sync",
+        "name": "company_enrichment_request",
+        "description": "When a user requests enrichment for a specific company, the agent should fetch and compile key data about the company, including recent news, key contacts, and relevant metrics.",
+        "outputSchema": salesInsightsSchema
+      },
+      {
+        "type": "sync",
+        "name": "sales_insight_generation",
+        "description": "When a user requests sales insights for a specific target customer role, the agent should analyze the enriched data to identify pain points, generate a lead score, and create a tailored value proposition.",
+        "outputSchema": salesInsightsSchema
+      },
+      {
+        "type": "sync",
+        "name": "outreach_material_creation",
+        "description": "When a user requests outreach materials, the agent should generate a cold email, LinkedIn message, and follow-up email template based on the enriched profile and sales insights.",
+        "outputSchema": salesInsightsSchema
+      }
+    ],
+    "config": {
+      "appId": "ced59212-a27c-435d-9d10-80866d6c5ce1",
+      "accountId": "c8dd74ec-b6f8-4d5e-8339-09620bfe99a7",
+      "widgetKey": "FYSBVjWiqIMzjWTvV6jbcrEudWYWYv7x4rivo0FL"
+    }
+  },
   {
     "id": "0a2c9e1d-d8bc-4ef4-a764-037c4baf208f",
     "name": "B2B Sales Insight Generator",
@@ -11,13 +66,7 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         "type": "sync",
         "name": "company_research_request",
         "description": "When a user inputs company details, analyze and produce structured insights.",
-        "outputSchema": z.object({
-          companySummary: z.string(),
-          painPoints: z.array(z.string()),
-          valueProposition: z.string(),
-          coldEmail: z.string(),
-          linkedInMessage: z.string(),
-        })
+        "outputSchema": salesInsightsSchema
       },
       {
         "type": "async",
@@ -45,25 +94,13 @@ export const AGENT_CONFIGS: AgentConfig[] = [
         "type": "sync",
         "name": "on_research_submission",
         "description": "When the user submits the company research form, the agent should immediately analyze the inputs and generate the structured sales insights and outreach copy.",
-        "outputSchema": z.object({
-          companySummary: z.string(),
-          painPoints: z.array(z.string()),
-          valueProposition: z.string(),
-          coldEmail: z.string(),
-          linkedInMessage: z.string(),
-        })
+        "outputSchema": salesInsightsSchema
       },
       {
         "type": "sync",
         "name": "on_refinement_request",
         "description": "When a user requests a change in tone or specific focus, the agent should regenerate the pain points and outreach messages accordingly.",
-        "outputSchema": z.object({
-          companySummary: z.string(),
-          painPoints: z.array(z.string()),
-          valueProposition: z.string(),
-          coldEmail: z.string(),
-          linkedInMessage: z.string(),
-        })
+        "outputSchema": salesInsightsSchema
       },
       {
         "type": "async",

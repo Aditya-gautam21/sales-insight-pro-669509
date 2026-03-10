@@ -2,15 +2,32 @@ import { emitter } from '@/agentSdk';
 import { ResearchInput, SalesInsights } from '@/types/sales';
 import { z } from 'zod';
 
-const insightsSchema = z.object({
-  companySummary: z.string(),
+const salesInsightsSchema = z.object({
+  enrichedProfile: z.object({
+    summary: z.string(),
+    keyContacts: z.array(z.object({
+      role: z.string(),
+      name: z.string(),
+      emailEst: z.string()
+    })),
+    extras: z.object({
+      revenueEst: z.string(),
+      fundingSize: z.string(),
+      techPainSignals: z.string()
+    })
+  }),
   painPoints: z.array(z.string()),
-  valueProposition: z.string(),
+  leadScore: z.object({
+    score: z.number(),
+    explanation: z.string()
+  }),
+  valuePropositionAngle: z.string(),
   coldEmail: z.string(),
   linkedInMessage: z.string(),
+  followUpEmail: z.string()
 });
 
-const RESEARCH_AGENT_ID = '0a2c9e1d-d8bc-4ef4-a764-037c4baf208f';
+const PRIMARY_AGENT_ID = '96cf504d-f62c-4c21-b86d-5e5c92121e7a';
 const OUTREACH_AGENT_ID = 'c2fba067-60dd-47d3-93dc-c28becee82cc';
 
 export const salesService = {
@@ -20,34 +37,51 @@ export const salesService = {
     if (isMock) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       return {
-        companySummary: `${input.companyName} is a leading player in the ${input.industry} industry, focused on delivering innovative solutions to their clients.`, 
+        enrichedProfile: {
+          summary: `${input.companyName} is an industry-leading organization in ${input.industry}, recently mentioned in global tech news for its expansion into AI-driven services.`,
+          keyContacts: [
+            { role: 'VP of Sales', name: 'Sarah Johnson', emailEst: 'sarah.j@example.com' },
+            { role: 'Head of Growth', name: 'Marcus Chen', emailEst: 'marcus.c@example.com' }
+          ],
+          extras: {
+            revenueEst: '$50M - $100M',
+            fundingSize: 'Series C ($45M total)',
+            techPainSignals: 'Scaling issues with legacy CRM; high turnover in SDR team.'
+          }
+        },
         painPoints: [
-          `Inefficiency in existing ${input.industry} workflows for ${input.targetRole}s.`, 
-          `Difficulty scaling operations without increasing overhead.`, 
-          `Lack of real-time data visibility for decision making.`, 
+          `Inefficient lead qualification for ${input.targetRole}s in ${input.industry}.`, 
+          `High customer acquisition cost (CAC) due to poor segmentation.`, 
+          `Manual data entry causing ${input.targetRole}s to lose 20% of their weekly capacity.`, 
         ],
-        valueProposition: `Our ${input.productService} directly addresses these challenges by streamlining core processes and providing actionable insights, enabling ${input.targetRole}s to focus on high-impact tasks.`, 
-        coldEmail: `Hi {{Name}},
+        leadScore: {
+          score: 8.5,
+          explanation: '8.5/10: High growth potential with clear tech pain signals that align with our product value.'
+        },
+        valuePropositionAngle: `Our ${input.productService} automates the manual tasks that are currently draining ${input.targetRole} capacity by 20%, directly lowering your CAC and accelerating growth.`, 
+        coldEmail: `Hi Sarah,
 
-I noticed ${input.companyName} is making great strides in ${input.industry}. Given your role as ${input.targetRole}, I thought you might be interested in how ${input.productService} helps similar teams overcome {{Pain Point}}.
+I saw ${input.companyName} is scaling rapidly in the ${input.industry} space, especially with your recent expansion.
+
+I noticed many teams in your position struggle with manual data entry for ${input.targetRole} roles. Our ${input.productService} can cut that overhead by 20%.
 
 Would you be open to a 5-minute chat next Tuesday?
 
 Best,
 [Your Name]`, 
-        linkedInMessage: `Hi {{Name}}, I've been following ${input.companyName}'s growth in ${input.industry}. I'd love to connect and share some insights on how we're helping ${input.targetRole}s optimize their workflows.`, 
+        linkedInMessage: `Hi Marcus, I've been following ${input.companyName}'s recent growth. I'd love to connect and share how we're helping ${input.industry} leaders like you optimize ${input.targetRole} workflows and lower CAC.`, 
+        followUpEmail: `Hi Sarah, just a quick nudge on my last note. I'd love to show you how ${input.productService} could save your team significant time each week. Any time for a quick chat?`
       };
     }
 
     try {
       const response = await emitter.emit({
-        agentId: RESEARCH_AGENT_ID,
-        event: 'company_research_request',
+        agentId: PRIMARY_AGENT_ID,
+        event: 'company_enrichment_request',
         payload: input,
       });
 
-      // Validating and returning the data from agent
-      return insightsSchema.parse(response);
+      return salesInsightsSchema.parse(response);
     } catch (error) {
       console.error('Error generating insights:', error);
       throw error;
@@ -60,6 +94,6 @@ Best,
       event: 'on_refinement_request',
       payload: input,
     });
-    return insightsSchema.parse(response);
+    return salesInsightsSchema.parse(response);
   }
 };
