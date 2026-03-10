@@ -41,3 +41,9 @@ export interface ResearchSession {
   insights: SalesInsights;
   timestamp: number;
 }
+
+export interface Template {
+  id: string;
+  name: string;
+  input: ResearchInput;
+}

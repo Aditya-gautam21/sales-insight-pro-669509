@@ -1,13 +1,15 @@
 import React from 'react';
 import { ResearchInput } from '@/types/sales';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, RotateCcw } from 'lucide-react';
 
 interface ResearchFormProps {
   onSubmit: (input: ResearchInput) => void;
   isLoading: boolean;
+  initialData?: ResearchInput;
+  onChange?: (input: ResearchInput) => void;
 }
 
-export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading }) => {
+export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading, initialData, onChange }) => {
   const [formData, setFormData] = React.useState<ResearchInput>({
     companyName: '',
     industry: '',
@@ -16,14 +18,34 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
     tone: 'Professional',
   });
 
+  React.useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
   };
 
+  const handleClear = () => {
+    const cleared = {
+      companyName: '',
+      industry: '',
+      targetRole: '',
+      productService: '',
+      tone: 'Professional',
+    };
+    setFormData(cleared);
+    onChange?.(cleared);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const updated = { ...formData, [name]: value };
+    setFormData(updated);
+    onChange?.(updated);
   };
 
   return (
@@ -92,23 +114,34 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
           className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none resize-none"
         />
       </div>
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Analyzing Insights...
-          </>
-        ) : (
-          <>
-            <Search className="w-5 h-5" />
-            Generate Sales Research
-          </>
-        )}
-      </button>
+      <div className="flex gap-4">
+        <button
+          type="button"
+          onClick={handleClear}
+          disabled={isLoading}
+          className="flex-shrink-0 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed border border-slate-200"
+        >
+          <RotateCcw className="w-5 h-5" />
+          Clear
+        </button>
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="flex-grow flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Analyzing Insights...
+            </>
+          ) : (
+            <>
+              <Search className="w-5 h-5" />
+              Generate Sales Research
+            </>
+          )}
+        </button>
+      </div>
     </form>
   );
 };
