@@ -3,6 +3,7 @@ import ApiError from './utils/ApiError.ts';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
+import salesRoutes from './routes/sales.routes.ts';
 
 // import authRoutes from './routes/auth.routes.ts';
 
@@ -31,6 +32,8 @@ app.get('/health', c => {
 
 // Mount auth routes only if auth needs to be implemented
 // app.route('/auth', authRoutes);
+
+app.route('/api/sales', salesRoutes);
 
 // send back a 404 error for any unknown api request
 app.notFound(() => {

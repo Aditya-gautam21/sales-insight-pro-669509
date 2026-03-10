@@ -8,6 +8,8 @@ interface TemplatesListProps {
   onDelete: (id: string) => void;
   onSaveCurrent: () => void;
   onExport: () => void;
+  onSuggest?: () => void;
+  isSuggesting?: boolean;
 }
 
 export const TemplatesList: React.FC<TemplatesListProps> = ({ 
@@ -15,7 +17,9 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
   onLoad, 
   onDelete, 
   onSaveCurrent,
-  onExport 
+  onExport,
+  onSuggest,
+  isSuggesting = false
 }) => {
   return (
     <div className="space-y-6">
@@ -24,7 +28,21 @@ export const TemplatesList: React.FC<TemplatesListProps> = ({
           <FileText className="w-5 h-5 text-indigo-600" />
           <h3 className="text-lg font-bold">Outreach Templates</h3>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onSuggest}
+            disabled={isSuggesting}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-all shadow-sm disabled:opacity-50"
+          >
+            {isSuggesting ? (
+              <span className="animate-pulse">Thinking...</span>
+            ) : (
+              <>
+                <FileText className="w-4 h-4" />
+                AI Suggest Template
+              </>
+            )}
+          </button>
           <button
             onClick={onExport}
             className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-all shadow-sm"

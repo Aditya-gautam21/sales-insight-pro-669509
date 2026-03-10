@@ -52,14 +52,13 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading,
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Company Name</label>
+          <label className="text-sm font-medium text-slate-700">Company Name (or leave blank for lead finder)</label>
           <input
-            required
             type="text"
             name="companyName"
             value={formData.companyName}
             onChange={handleChange}
-            placeholder="e.g. Acme Corp"
+            placeholder="e.g. Acme Corp or skip to find leads"
             className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
           />
         </div>

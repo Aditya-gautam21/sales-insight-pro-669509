@@ -26,9 +26,9 @@ export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights, onRe
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
       {/* Lead Score Badge */}
-      <div className="flex justify-center">
-        <div className="bg-indigo-600 text-white px-6 py-3 rounded-2xl shadow-lg shadow-indigo-200 flex items-center gap-4 border-2 border-indigo-400/20">
-          <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-full font-bold text-xl border border-white/30">
+      <div className="flex flex-col items-center gap-4">
+        <div className="bg-indigo-600 text-white px-6 py-4 rounded-2xl shadow-lg shadow-indigo-200 flex items-center gap-4 border-2 border-indigo-400/20 w-full max-w-2xl">
+          <div className="flex items-center justify-center w-14 h-14 bg-white/20 rounded-full font-bold text-2xl border border-white/30 shrink-0">
             {insights.leadScore.score}
           </div>
           <div>
@@ -36,6 +36,23 @@ export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights, onRe
             <div className="text-sm font-medium">{insights.leadScore.explanation}</div>
           </div>
         </div>
+        
+        {insights.leadScore.breakdown && (
+          <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
+            <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Industry Fit</div>
+              <div className="font-bold text-indigo-600">{insights.leadScore.breakdown.industryFit}/3</div>
+            </div>
+            <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Pain Alignment</div>
+              <div className="font-bold text-indigo-600">{insights.leadScore.breakdown.painAlignment}/3</div>
+            </div>
+            <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Growth Potential</div>
+              <div className="font-bold text-indigo-600">{insights.leadScore.breakdown.growthPotential}/4</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Refine Tone Section */}
@@ -157,22 +174,45 @@ export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights, onRe
               <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
                 <Mail className="w-4 h-4" />
               </div>
-              <h3 className="font-bold text-slate-800">Cold Email</h3>
+              <h3 className="font-bold text-slate-800">Cold Email (A/B)</h3>
             </div>
-            <button
-              onClick={() => copyToClipboard(insights.coldEmail, 'email')}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200"
-            >
-              {copiedField === 'email' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {copiedField === 'email' ? 'COPIED' : 'COPY'}
-            </button>
           </div>
-          <div className="p-8 flex-grow">
-            <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
-              <pre className="text-sm text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
-                {insights.coldEmail}
-              </pre>
+          <div className="p-6 space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Variant A</span>
+                <button
+                  onClick={() => copyToClipboard(insights.coldEmail, 'email-a')}
+                  className="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors"
+                >
+                  {copiedField === 'email-a' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
+                  {insights.coldEmail}
+                </pre>
+              </div>
             </div>
+
+            {insights.coldEmailVariant && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-violet-600 uppercase tracking-widest">Variant B (Tone Tweak)</span>
+                  <button
+                    onClick={() => copyToClipboard(insights.coldEmailVariant!, 'email-b')}
+                    className="p-1.5 text-slate-400 hover:text-violet-600 transition-colors"
+                  >
+                    {copiedField === 'email-b' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+                <div className="bg-violet-50/30 p-4 rounded-xl border border-violet-100">
+                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed">
+                    {insights.coldEmailVariant}
+                  </pre>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -209,22 +249,28 @@ export const InsightsDisplay: React.FC<InsightsDisplayProps> = ({ insights, onRe
               <div className="p-2 bg-white/20 text-white rounded-lg">
                 <ArrowRight className="w-4 h-4" />
               </div>
-              <h3 className="font-bold text-white uppercase tracking-wider">SDR Follow-Up Sequence (Day 3 Nudge)</h3>
+              <h3 className="font-bold text-white uppercase tracking-wider">SDR Follow-Up Sequence</h3>
             </div>
-            <button
-              onClick={() => copyToClipboard(insights.followUpEmail, 'followup')}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-indigo-600 bg-white rounded-lg hover:bg-indigo-50 transition-colors shadow-sm shadow-white/20"
-            >
-              {copiedField === 'followup' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              {copiedField === 'followup' ? 'COPIED' : 'COPY'}
-            </button>
           </div>
-          <div className="p-8 bg-slate-50/30">
-            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-              <pre className="text-slate-700 whitespace-pre-wrap font-sans leading-relaxed italic">
-                {insights.followUpEmail}
-              </pre>
-            </div>
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/30">
+            {(insights.followUpSequence || [insights.followUpEmail]).map((step, idx) => (
+              <div key={idx} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full uppercase tracking-widest">Day {idx === 0 ? '3' : '7'} Nudge</span>
+                  <button
+                    onClick={() => copyToClipboard(step || '', `followup-${idx}`)}
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors"
+                  >
+                    {copiedField === `followup-${idx}` ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm h-full">
+                  <pre className="text-xs text-slate-700 whitespace-pre-wrap font-sans leading-relaxed italic">
+                    {step}
+                  </pre>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </div>

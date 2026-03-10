@@ -15,6 +15,11 @@ export interface EnrichedProfile {
 export interface LeadScore {
   score: number;
   explanation: string;
+  breakdown?: {
+    industryFit: number;
+    painAlignment: number;
+    growthPotential: number;
+  };
 }
 
 export interface ResearchInput {
@@ -26,13 +31,16 @@ export interface ResearchInput {
 }
 
 export interface SalesInsights {
+  companyName?: string;
   enrichedProfile: EnrichedProfile;
   painPoints: string[];
   leadScore: LeadScore;
   valuePropositionAngle: string;
   coldEmail: string;
+  coldEmailVariant?: string;
   linkedInMessage: string;
-  followUpEmail: string;
+  followUpEmail?: string;
+  followUpSequence?: string[];
 }
 
 export interface ResearchSession {

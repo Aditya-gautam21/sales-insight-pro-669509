@@ -39,19 +39,154 @@ model UserIdentity {
 
 
 model Otp {
+
+
   id         String   @id @default(uuid())
+
+
   identifier String   // Phone number or email address
+
+
   type       String   // 'phone' or 'email'
+
+
   otp        String   // Hashed OTP
+
+
   expiresAt  DateTime
+
+
   attempts   Int      @default(0)
+
+
   verified   Boolean  @default(false)
+
+
   purpose    String?  // 'login', 'registration', 'password_reset', '2fa', etc.
+
+
   createdAt  DateTime @default(now())
+
+
   updatedAt  DateTime @updatedAt
+
+
   isDeleted  Boolean?
 
+
+
+
+
   @@index([identifier, type])
+
+
   @@index([expiresAt])
+
+
   @@index([identifier, type, verified])
+
+
 }
+
+
+
+
+
+model ResearchHistory {
+
+
+  id          String   @id @default(uuid())
+
+
+  companyName String
+
+
+  industry    String
+
+
+  targetRole  String
+
+
+  product     String
+
+
+  tone        String
+
+
+  leadScore   Float
+
+
+  insights    Json     // Stores the full SalesInsights object
+
+
+  input       Json     // Stores the ResearchInput
+
+
+  createdAt   DateTime @default(now())
+
+
+  updatedAt   DateTime @updatedAt
+
+
+  isDeleted   Boolean  @default(false)
+
+
+
+
+
+  @@index([companyName])
+
+
+  @@index([industry])
+
+
+  @@index([isDeleted])
+
+
+}
+
+
+
+
+
+model SalesTemplate {
+
+
+  id         String   @id @default(uuid())
+
+
+  name       String
+
+
+  industry   String
+
+
+  targetRole String
+
+
+  product    String
+
+
+  tone       String
+
+
+  createdAt  DateTime @default(now())
+
+
+  updatedAt  DateTime @updatedAt
+
+
+  isDeleted  Boolean  @default(false)
+
+
+
+
+
+  @@index([name])
+
+
+  @@index([isDeleted])
+
+
+}
+
